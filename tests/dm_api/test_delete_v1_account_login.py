@@ -1,3 +1,5 @@
+import pytest
+from requests.exceptions import HTTPError
 
 
 class TestDeleteV1AccountLogin:
@@ -13,5 +15,8 @@ class TestDeleteV1AccountLogin:
         response = login_helper.logout()
         assert response.status_code == 204, "Неверный код ответа при выходе из системы"
 
-        check_auth = auth_user.helper.get_current_user()
-        assert check_auth.status_code == 401, "Пользователь все еще авторизован после выхода"
+        # Проверяем что пользователь не авторизован через обработку исключения
+        with pytest.raises(HTTPError) as exc_info:
+            auth_user.helper.get_current_user()
+
+        assert exc_info.value.response.status_code == 401, "Пользователь все еще авторизован после выхода"

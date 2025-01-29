@@ -1,4 +1,5 @@
-
+import pytest
+from requests.exceptions import HTTPError
 
 class TestPutV1AccountEmail:
     def test_put_v1_account_email(self, account_helper, dm_api_facade, mailhog_facade, login_helper, prepare_user):
@@ -29,8 +30,9 @@ class TestPutV1AccountEmail:
         assert response.status_code == 200
 
         # Проверка невозможности входа до подтверждения
-        response = login_helper.login(user.login, user.password)
-        assert response.status_code == 403
+        with pytest.raises(HTTPError) as exc_info:
+            login_helper.login(user.login, user.password)
+        assert exc_info.value.response.status_code == 403
 
         # Получение токена и активация нового email
         email_change_token = account_helper.get_registration_token(user.login)
